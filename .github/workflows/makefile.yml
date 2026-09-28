@@ -20,8 +20,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run build_runner and build APK
+      - name: Run build_runner
+        run: cd flutterfiles && make build-runner
+
+      - name: Build release APK
         run: cd flutterfiles && make build-apk-container
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: lista-de-la-compra-apk
+          path: flutterfiles/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
 
       - name: Commit generated Drift database if changed
         run: |
