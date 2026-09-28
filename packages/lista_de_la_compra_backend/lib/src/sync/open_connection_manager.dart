@@ -10,90 +10,61 @@ import '../../lista_de_la_compra_backend.dart';
 
 class OpenConnectionManager {
   final ProductProvider productProvider;
-  final RecipeProvider recipeProvider;
-  final ScheduleProvider scheduleProvider;
   final OpenConnectionProvider openConnectionProvider;
   final SharedPreferencesProvider sharedPreferencesProvider;
   final EnvironmentProvider environmentProvider;
-  final SuperMarketProvider supermarketProvider;
-  final AisleProvider aisleProvider;
-  final ProductAisleProvider productAisleProvider;
-  final MapTileProvider mapTileProvider;
   final HouseProvider houseProvider;
   final NeededProductProvider neededProductProvider;
 
   final bool downloadAllEnvironments;
 
-  void triggerSyncPull() async {
-    for (OpenConnection conection in openConnectionProvider.openConnections.values) {
-      conection.triggerSyncPull();
-    }
-  }
-
-  void triggerSyncPush() async {
-    for (var openConnection in openConnectionProvider.openConnections.values) {
-      openConnection.triggerSyncPush();
-    }
-  }
-
-  void triggerHandshakePush() async {
-    for (var openConnection in openConnectionProvider.openConnections.values) {
-      openConnection.triggerHandshakePush();
-    }
-  }
-
   OpenConnectionManager(
     this.openConnectionProvider,
     this.productProvider,
-    this.recipeProvider,
-    this.scheduleProvider,
     this.environmentProvider,
-    this.supermarketProvider,
-    this.aisleProvider,
-    this.productAisleProvider,
-    this.mapTileProvider,
     this.houseProvider,
     this.neededProductProvider,
     this.sharedPreferencesProvider, {
     this.downloadAllEnvironments = false,
   }) {
     productProvider.addListener(triggerSyncPush);
-    recipeProvider.addListener(triggerSyncPush);
-    scheduleProvider.addListener(triggerSyncPush);
     environmentProvider.addListener(triggerHandshakePush);
-    supermarketProvider.addListener(triggerSyncPush);
-    aisleProvider.addListener(triggerSyncPush);
-    productAisleProvider.addListener(triggerSyncPush);
-    mapTileProvider.addListener(triggerSyncPush);
     houseProvider.addListener(triggerSyncPush);
     neededProductProvider.addListener(triggerSyncPush);
     sharedPreferencesProvider.addListener(triggerHandshakePush);
   }
 
-  Map<String, dynamic> getPing() {
-    return {"type": "ping", "nonce": math.Random().nextInt(1000), "ping_t": DateTime.now().millisecondsSinceEpoch};
+  void triggerSyncPull() {
+    for (final connection in openConnectionProvider.openConnections.values) {
+      connection.triggerSyncPull();
+    }
+  }
+
+  void triggerSyncPush() {
+    for (final connection in openConnectionProvider.openConnections.values) {
+      connection.triggerSyncPush();
+    }
+  }
+
+  void triggerHandshakePush() {
+    for (final connection in openConnectionProvider.openConnections.values) {
+      connection.triggerHandshakePush();
+    }
   }
 
   Future<String> getStateDigest(int salt, String enviromentId) async {
-    Uint8List bytes = utf8.encode(
+    final bytes = utf8.encode(
       jsonEncode(
         await serializeEnvironment(
           enviromentId,
           environmentProvider,
           productProvider,
-          recipeProvider,
-          scheduleProvider,
-          supermarketProvider,
-          aisleProvider,
-          productAisleProvider,
-          mapTileProvider,
           houseProvider,
           neededProductProvider,
         ),
       ),
-    ); // data being hashed
-    var saltedBytes = bytes + utf8.encode(salt.toString());
-    return sha512256.convert(saltedBytes).toString();
+    );
+    return sha512256.convert(bytes + utf8.encode(salt.toString())).toString();
   }
 
   Future<Map<String, dynamic>> getHandshake() async {
@@ -112,22 +83,22 @@ class OpenConnectionManager {
     Function(String)? afterHandshakeNickCb,
     Function? abortCb,
   }) async {
-    print("socketManage");
-
     String? terminalId;
     String? openConnectionId;
     String? nick;
 
-    void send(msg) {
-      ws.sink.add(msg);
-    }
+    void send(dynamic message) => ws.sink.add(message);
 
     Future<void> triggerSyncPull() async {
-      for (Environment env in await environmentProvider.getEnvironmentList()) {
+      for (final env in await environmentProvider.getEnvironmentList()) {
         if (!env.id.contains("noSync")) {
-          int salt = math.Random().nextInt(1000);
-          send(jsonEncode({"type": "send_digest", "salt": salt, "environment": env, "digest": await getStateDigest(salt, env.id)}));
-          // print("triggerSyncPull: sent send_digest of $env");
+          final salt = math.Random().nextInt(1000);
+          send(jsonEncode({
+            "type": "send_digest",
+            "salt": salt,
+            "environment": env,
+            "digest": await getStateDigest(salt, env.id),
+          }));
         }
       }
     }
@@ -136,155 +107,130 @@ class OpenConnectionManager {
 
     void checkResponsiveness() {
       responsivenessTimeout?.cancel();
-      responsivenessTimeout = Timer(Duration(seconds: 10), () => ws.sink.close());
-      send(jsonEncode(getPing()));
+      responsivenessTimeout = Timer(
+        const Duration(seconds: 10),
+        () => ws.sink.close(),
+      );
+      send(jsonEncode({
+        "type": "ping",
+        "nonce": math.Random().nextInt(1000),
+        "ping_t": DateTime.now().millisecondsSinceEpoch,
+      }));
     }
 
-    ws.stream.listen(
-      (message) async {
-        if (message is String) {
-          Map<String, dynamic> data = jsonDecode(message);
+    ws.stream.listen((message) async {
+      if (message is! String) return;
+      final data = jsonDecode(message);
 
-          // print( "Received: ${data["type"]}");
+      switch (data["type"]) {
+        case "ping":
+          send(jsonEncode({
+            "type": "pong",
+            "nonce": data["nonce"],
+            "ping_t": data["ping_t"],
+            "pong_t": DateTime.now().millisecondsSinceEpoch,
+          }));
+          break;
+        case "pong":
+          responsivenessTimeout?.cancel();
+          responsivenessTimeout = Timer(const Duration(seconds: 1), checkResponsiveness);
+          final latency = DateTime.now().millisecondsSinceEpoch - data["ping_t"];
+          if (terminalId != null && openConnectionId != null) {
+            openConnectionProvider.setLatency(openConnectionId!, latency);
+          }
+          break;
+        case "handshake":
+          terminalId = data["id"];
+          nick = data["nick"];
+          if (afterHandshakeNickCb != null && nick != null) {
+            afterHandshakeNickCb(nick!);
+          }
 
-          switch (data["type"]) {
-            case "ping":
-              send(jsonEncode({"type": "pong", "nonce": data["nonce"], "ping_t": data["ping_t"], "pong_t": DateTime.now().millisecondsSinceEpoch}));
-              break;
-            case "pong":
-              responsivenessTimeout?.cancel();
-              responsivenessTimeout = Timer(Duration(seconds: 1), checkResponsiveness);
-              num latency = DateTime.now().millisecondsSinceEpoch - data["ping_t"];
-              if (terminalId != null) {
-                openConnectionProvider.setLatency(openConnectionId!, latency);
-              }
+          final envList = <Environment>[
+            for (final jsonEnv in data["env_list"]) Environment.fromJson(jsonEnv),
+          ];
 
-              break;
-            case "handshake":
-              terminalId = data["id"];
-              nick = data["nick"];
+          if (openConnectionId == null) {
+            openConnectionId = openConnectionProvider.addOpenConnection(
+              terminalId!,
+              connectionSourceId,
+              nick!,
+              () async => triggerSyncPull(),
+              () => send(jsonEncode({"type": "sync_push"})),
+              () async => send(jsonEncode(await getHandshake())),
+              () => ws.sink.close(4001, "Erased Peer"),
+              envList,
+              userNote,
+            );
+          } else {
+            openConnectionProvider.setNick(openConnectionId!, nick!);
+          }
 
-              if (afterHandshakeNickCb != null && nick != null) {
-                afterHandshakeNickCb(nick!);
-              }
+          if (downloadAllEnvironments) {
+            for (final env in envList) {
+              await environmentProvider.upsertEnvironment(env);
+            }
+          }
 
-              List<Environment> envList = [];
+          await triggerSyncPull();
+          responsivenessTimeout?.cancel();
+          checkResponsiveness();
+          break;
+        case "sync_push":
+          await triggerSyncPull();
+          break;
+        case "send_digest":
+          if (data["environment"] == null) break;
 
-              for (var jsonEnv in data["env_list"]) {
-                envList.add(Environment.fromJson(jsonEnv));
-              }
+          final remoteEnvironment = Environment.fromJson(data["environment"]);
+          final currentEnvironment =
+              await environmentProvider.getEnvironmentById(remoteEnvironment.id);
+          if (currentEnvironment == null) break;
 
-              if (openConnectionId == null) {
-                openConnectionId = openConnectionProvider.addOpenConnection(
-                  terminalId!,
-                  connectionSourceId,
-                  nick!,
-                  () async => await triggerSyncPull(),
-                  () => send(jsonEncode({"type": "sync_push"})),
-                  () async => send(jsonEncode(await getHandshake())),
-                  () => (ws.sink.close(4001, "Errased Peer")),
-                  envList,
-                  userNote,
-                );
-              } else {
-                openConnectionProvider.setNick(openConnectionId!, nick!);
-              }
+          if (currentEnvironment.updatedAt < remoteEnvironment.updatedAt &&
+              currentEnvironment.name != remoteEnvironment.name) {
+            await environmentProvider.setName(
+              currentEnvironment.id,
+              remoteEnvironment.name,
+            );
+          }
 
-              if (downloadAllEnvironments) {
-                for (var env in envList) {
-                  environmentProvider.upsertEnvironment(env);
-                }
-              }
+          final ownDigest =
+              await getStateDigest(data["salt"], remoteEnvironment.id);
 
-              triggerSyncPull();
-
-              responsivenessTimeout?.cancel();
-              checkResponsiveness();
-              break;
-
-            case "sync_push":
-              triggerSyncPull();
-
-              break;
-
-            case "send_digest":
-              if (data["environment"] == null) {
-                print("data is null, do nothing");
-                print("$data");
-                break;
-              }
-              Environment remoteEnvironment = Environment.fromJson(data["environment"]);
-              Environment? currentEnvironment = await environmentProvider.getEnvironmentById(remoteEnvironment.id);
-              if (currentEnvironment == null) {
-                break;
-              }
-
-              if (currentEnvironment.updatedAt < remoteEnvironment.updatedAt) {
-                if (currentEnvironment.name != remoteEnvironment.name) {
-                  environmentProvider.setName(currentEnvironment.id, remoteEnvironment.name);
-                }
-              }
-
-              String ownDigest = await getStateDigest(data["salt"], remoteEnvironment.id);
-
-              if (data["digest"] == ownDigest) {
-                send(jsonEncode({"type": "sync_up_to_date"}));
-              } else {
-                send(
-                  jsonEncode({
-                    "type": "send_state",
-                    "state": await serializeEnvironment(
-                      remoteEnvironment.id,
-                      environmentProvider,
-                      productProvider,
-                      recipeProvider,
-                      scheduleProvider,
-                      supermarketProvider,
-                      aisleProvider,
-                      productAisleProvider,
-                      mapTileProvider,
-                      houseProvider,
-                      neededProductProvider,
-                    ),
-                  }),
-                );
-              }
-              break;
-
-            case "send_state":
-              recieveState(
-                data["state"],
+          if (data["digest"] == ownDigest) {
+            send(jsonEncode({"type": "sync_up_to_date"}));
+          } else {
+            send(jsonEncode({
+              "type": "send_state",
+              "state": await serializeEnvironment(
+                remoteEnvironment.id,
                 environmentProvider,
                 productProvider,
-                recipeProvider,
-                scheduleProvider,
-                supermarketProvider,
-                aisleProvider,
-                productAisleProvider,
-                mapTileProvider,
                 houseProvider,
                 neededProductProvider,
-              );
-
-              break;
-
-            case "sync_up_to_date":
-              // No action needed
-              break;
-
-            default:
-              print("Unknown message type: ${data["type"]}");
+              ),
+            }));
           }
-        }
-      },
-      onDone: () {
-        print("ondone");
-        responsivenessTimeout?.cancel();
-        if (openConnectionId != null) {
-          openConnectionProvider.removeOpenConnection(openConnectionId!);
-        }
-      },
-    );
+          break;
+        case "send_state":
+          await recieveState(
+            data["state"],
+            environmentProvider,
+            productProvider,
+            houseProvider,
+            neededProductProvider,
+          );
+          break;
+        case "sync_up_to_date":
+          break;
+      }
+    }, onDone: () {
+      responsivenessTimeout?.cancel();
+      if (openConnectionId != null) {
+        openConnectionProvider.removeOpenConnection(openConnectionId!);
+      }
+    });
 
     send(jsonEncode(await getHandshake()));
   }
