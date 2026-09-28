@@ -1,15 +1,15 @@
 FROM ghcr.io/cirruslabs/flutter:stable
 
-# The CirrusLabs stable image currently provides Flutter 3.44.0,
-# while this project requires Flutter 3.44.8. Pin the SDK explicitly.
+# CirrusLabs publishes only selected Flutter patch releases (for example
+# 3.44.0), so install the exact Flutter patch release required by this
+# project from Flutter's official release archive.
 USER root
-RUN git -C /sdks/flutter fetch --depth 1 origin 3.44.8 \
-    && git -C /sdks/flutter checkout --detach FETCH_HEAD \
-    && flutter precache --android \
-    && flutter --version
+RUN rm -rf /sdks/flutter \
+    && curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.44.8-stable.tar.xz \
+       | tar -xJ -C /sdks \
+    && /sdks/flutter/bin/flutter precache --android \
+    && /sdks/flutter/bin/flutter --version
 
-# Make the pinned SDK explicit at runtime too. The base image sets
-# FLUTTER_VERSION to the version it was originally built with.
 ENV FLUTTER_HOME=/sdks/flutter
 ENV FLUTTER_ROOT=/sdks/flutter
 ENV FLUTTER_VERSION=3.44.8
