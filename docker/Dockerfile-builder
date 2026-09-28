@@ -1,12 +1,12 @@
 FROM ghcr.io/cirruslabs/flutter:stable
 
-# CirrusLabs publishes only selected Flutter patch releases (for example
-# 3.44.0), so install the exact Flutter patch release required by this
-# project from Flutter's official release archive.
+# CirrusLabs publishes only selected Flutter patch releases, so install the
+# exact Flutter SDK required by this project from Flutter's official archive.
 USER root
 RUN rm -rf /sdks/flutter \
     && curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.44.8-stable.tar.xz \
        | tar -xJ -C /sdks \
+    && git config --global --add safe.directory /sdks/flutter \
     && /sdks/flutter/bin/flutter precache --android \
     && /sdks/flutter/bin/flutter --version
 
@@ -25,8 +25,7 @@ ENV PUB_CACHE=/cache/pub-cache
 ENV GRADLE_USER_HOME=/cache/gradle-cache
 RUN mkdir -p $PUB_CACHE $GRADLE_USER_HOME
 
-# To avoid: fatal: detected dubious ownership in repository at '/sdks/flutter'
-# Pass this during build: --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)
+# To avoid ownership issues when the container runs as the host user.
 ARG USER_ID
 ARG GROUP_ID
 RUN echo "Using UID: $USER_ID and GID: $GROUP_ID"
