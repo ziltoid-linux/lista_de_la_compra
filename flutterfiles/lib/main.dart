@@ -61,7 +61,6 @@ class MyApp extends StatelessWidget {
 
     final OpenConnectionManager openConnectionManager = OpenConnectionManager(
       openConnectionProvider,
-      openConnectionProvider,
       productProvider,
       environmentProvider,
       houseProvider,
