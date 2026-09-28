@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run build_runner
-        run: cd flutterfiles && make build-runner
+        run: cd flutterfiles && make build-runner-container
 
       - name: Build release APK
         run: cd flutterfiles && make build-apk-container
