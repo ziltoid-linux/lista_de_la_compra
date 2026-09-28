@@ -1,12 +1,19 @@
 FROM ghcr.io/cirruslabs/flutter:stable
 
 # The CirrusLabs stable image currently provides Flutter 3.44.0,
-# while this project requires Flutter 3.44.8. Pin the SDK explicitly
-# because CirrusLabs does not publish every Flutter patch release.
+# while this project requires Flutter 3.44.8. Pin the SDK explicitly.
 USER root
 RUN git -C /sdks/flutter fetch --depth 1 origin 3.44.8 \
     && git -C /sdks/flutter checkout --detach FETCH_HEAD \
-    && flutter precache --android
+    && flutter precache --android \
+    && flutter --version
+
+# Make the pinned SDK explicit at runtime too. The base image sets
+# FLUTTER_VERSION to the version it was originally built with.
+ENV FLUTTER_HOME=/sdks/flutter
+ENV FLUTTER_ROOT=/sdks/flutter
+ENV FLUTTER_VERSION=3.44.8
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/android-sdk-linux/cmdline-tools/latest/bin:/opt/android-sdk-linux/platform-tools:/opt/android-sdk-linux/emulator:/sdks/flutter/bin:/sdks/flutter/bin/cache/dart-sdk/bin
 
 # Install cmake, ninja, clang, pkg-config for flutter linux
 RUN apt-get update && apt-get install -y cmake ninja-build clang pkg-config libgtk-3-dev liblzma-dev lld
