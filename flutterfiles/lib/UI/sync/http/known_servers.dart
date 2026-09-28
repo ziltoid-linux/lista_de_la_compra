@@ -6,7 +6,6 @@ import '../../../flutter_providers/flutter_providers.dart';
 
 import 'package:lista_de_la_compra_backend/lista_de_la_compra_backend.dart';
 
-
 class HTTPKnownServers extends StatelessWidget {
   const HTTPKnownServers({super.key});
 
@@ -18,14 +17,14 @@ class HTTPKnownServers extends StatelessWidget {
     HttpServerProvider httpServerProvider = context.watch<FlutterHttpServerProvider>();
     OpenConnectionProvider openConnectionProvider = context.watch<FlutterOpenConnectionProvider>();
 
-    return FutureBuilder(
+    return FutureBuilder<List<HttpServerData>>(
       future: httpServerProvider.getHttpServers(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Text(appLoc.loading);
         }
 
-        List<HttpServerData> servers = snapshot.data!;
+        final List<HttpServerData> servers = snapshot.data!;
         if (servers.isEmpty) {
           return Center(child: Text(appLoc.noHTTPPairings));
         }
