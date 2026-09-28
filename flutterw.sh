@@ -120,7 +120,7 @@ main(){
         clean_build_cache
         return $?
     elif [ "$1" = "--exec" ]; then
-        exec_in_container ${@:2}
+        exec_in_container "${@:2}"
         return $?
     else
         exec_in_container flutter ${@:1}
