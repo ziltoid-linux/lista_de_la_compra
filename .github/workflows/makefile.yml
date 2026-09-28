@@ -21,11 +21,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Build Flutter container
+        run: ./flutterw.sh --build
+
       - name: Run build_runner
-        run: cd flutterfiles && make build-runner-container
+        run: ./flutterw.sh --exec sh -c 'cd flutterfiles && dart run build_runner build'
 
       - name: Build release APK
-        run: cd flutterfiles && make build-apk-container
+        run: ./flutterw.sh --exec sh -c 'cd flutterfiles && flutter build apk --release'
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -36,7 +39,7 @@ jobs:
 
       - name: Commit generated Drift database if changed
         run: |
-          git add packages/lista_de_la_compra_backend/lib/src/db/database.g.dart
+          git add flutterfiles/packages/lista_de_la_compra_backend/lib/src/db/database.g.dart
           if git diff --cached --quiet; then
             echo "Generated Drift file is already up to date."
           else
