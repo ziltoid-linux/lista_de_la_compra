@@ -46,7 +46,7 @@ class _UndoToastState extends State<UndoToast> with TickerProviderStateMixin {
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          FutureBuilder(
+          FutureBuilder<Product?>(
             future: productProvider.getProductById(widget.productId),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
@@ -110,9 +110,12 @@ class _NeededCheckboxState extends State<NeededCheckbox> {
     NeededProductProvider neededProductProvider = context.watch<FlutterNeededProductProvider>();
     HouseProvider houseProvider = context.watch<FlutterHouseProvider>();
 
-    Future combined = Future.wait([neededProductProvider.isNeeded(widget.houseId, widget.productId), houseProvider.getHouseById(widget.houseId)]);
+    Future<List<dynamic>> combined = Future.wait<dynamic>([
+      neededProductProvider.isNeeded(widget.houseId, widget.productId),
+      houseProvider.getHouseById(widget.houseId),
+    ]);
 
-    return FutureBuilder(
+    return FutureBuilder<List<dynamic>>(
       future: combined,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -123,6 +126,7 @@ class _NeededCheckboxState extends State<NeededCheckbox> {
 
         final bool isNeeded = combinedResult[0] ?? false;
         final House house = combinedResult[1];
+
         final Color checkboxColor = Color(house.color);
 
         return Row(
