@@ -2,14 +2,9 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_show_when_locked/flutter_show_when_locked.dart';
 import 'package:lista_de_la_compra/UI/selected_environment_fork.dart';
-import 'package:lista_de_la_compra/flutter_providers/temp_route_provider.dart';
 import 'package:lista_de_la_compra/shared_preference_providers/persistant_shared_preferences_provider.dart';
 import 'package:lista_de_la_compra/shared_preference_providers/persistent_selected_houses_provider.dart';
-import 'package:lista_de_la_compra/shared_preference_providers/persistant_selected_market_provider.dart';
 import 'package:lista_de_la_compra/sync/http_client_service.dart';
-// import 'package:lista_de_la_compra_backend/src/sync/http_server_manager.dart';
-// import 'package:lista_de_la_compra_backend/src/sync/open_connection_manager.dart';
-// import 'package:lista_de_la_compra_backend/src/db/database.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'flutter_providers/flutter_providers.dart';
@@ -24,13 +19,15 @@ Future main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     AppDatabaseSingleton.setQueryExecutor(
       driftDatabase(
         name: 'persistence',
-        web: DriftWebOptions(sqlite3Wasm: Uri.parse("sqlite3.wasm"), driftWorker: Uri.parse("drift_worker.js")),
+        web: DriftWebOptions(
+          sqlite3Wasm: Uri.parse("sqlite3.wasm"),
+          driftWorker: Uri.parse("drift_worker.js"),
+        ),
         native: DriftNativeOptions(
           databaseDirectory: () async {
             try {
@@ -62,11 +59,11 @@ class MyApp extends StatelessWidget {
     final FlutterMapTileProvider mapTileProvider = FlutterMapTileProvider();
     final FlutterHouseProvider houseProvider = FlutterHouseProvider();
     final FlutterNeededProductProvider neededProductProvider = FlutterNeededProductProvider();
-    final RouteProvider routeProvider = RouteProvider();
 
-    final PersistantSharedPreferencesProvider sharedPreferencesProvider = PersistantSharedPreferencesProvider(context);
-    final PersistentSelectedHousesProvider selectedHousesProvider = PersistentSelectedHousesProvider();
-    final PersistantSelectedMarketProvider selectedMarketProvider = PersistantSelectedMarketProvider(context);
+    final PersistantSharedPreferencesProvider sharedPreferencesProvider =
+        PersistantSharedPreferencesProvider(context);
+    final PersistentSelectedHousesProvider selectedHousesProvider =
+        PersistentSelectedHousesProvider();
 
     final OpenConnectionManager openConnectionManager = OpenConnectionManager(
       openConnectionProvider,
@@ -80,14 +77,16 @@ class MyApp extends StatelessWidget {
       mapTileProvider,
       houseProvider,
       neededProductProvider,
-
       sharedPreferencesProvider,
     );
 
-    final HttpServerManager httpServerManager = HttpServerManager(httpServerProvider, openConnectionManager);
-    final FlutterHttpClientService httpClientService = FlutterHttpClientService(openConnectionProvider, openConnectionManager, httpServerProvider);
+    final HttpServerManager httpServerManager =
+        HttpServerManager(httpServerProvider, openConnectionManager);
+    final FlutterHttpClientService httpClientService =
+        FlutterHttpClientService(openConnectionProvider, openConnectionManager, httpServerProvider);
 
-    final FlutterHttpServerStateProvider httpServerStateProvider = FlutterHttpServerStateProvider(httpServerManager, sharedPreferencesProvider);
+    final FlutterHttpServerStateProvider httpServerStateProvider =
+        FlutterHttpServerStateProvider(httpServerManager, sharedPreferencesProvider);
 
     (() async {
       httpServerStateProvider.tryStartServer();
@@ -115,28 +114,25 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => mapTileProvider),
         ChangeNotifierProvider(create: (_) => houseProvider),
         ChangeNotifierProvider(create: (_) => neededProductProvider),
-        
-        ChangeNotifierProvider(create: (_) => routeProvider),
-
         ChangeNotifierProvider(create: (_) => sharedPreferencesProvider),
         ChangeNotifierProvider(create: (_) => selectedHousesProvider),
-        ChangeNotifierProvider(create: (_) => selectedMarketProvider),
       ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         onGenerateTitle: (context) {
-          AppLocalizations appLoc = AppLocalizations.of(context)!;
+          final appLoc = AppLocalizations.of(context)!;
           return appLoc.appTitle;
         },
         theme: ThemeData(
           useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(220, 138, 221, 1), brightness: MediaQuery.platformBrightnessOf(context)),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color.fromRGBO(220, 138, 221, 1),
+            brightness: MediaQuery.platformBrightnessOf(context),
+          ),
         ),
         home: SelectedEnvironmentFork(openConnectionManager),
       ),
     );
   }
 }
-
-class NativeDatabase {}
