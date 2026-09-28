@@ -19,8 +19,8 @@ class ProductDetail extends StatelessWidget {
     final ProductProvider productProvider = context.watch<FlutterProductProvider>();
     final HouseProvider houseProvider = context.watch<FlutterHouseProvider>();
 
-    final productFuture = productProvider.getProductById(productId);
-    final housesFuture = houseProvider.getHouseList(enviromentId);
+    final Future<Product?> productFuture = productProvider.getProductById(productId);
+    final Future<List<House>> housesFuture = houseProvider.getHouseList(enviromentId);
 
     return Scaffold(
       appBar: AppBar(
@@ -82,7 +82,7 @@ class ProductDetail extends StatelessWidget {
             },
           ),
         ],
-        title: FutureBuilder(
+        title: FutureBuilder<Product?>(
           future: productFuture,
           builder: (context, snapshot) {
             if (snapshot.hasData) return Text(snapshot.data!.name);
