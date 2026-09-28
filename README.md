@@ -21,5 +21,9 @@ This fork is a simplified grocery-list version of the original app.
 
 The original project is a Flutter application with local peer-to-peer synchronization. This fork deliberately keeps the existing synchronization architecture while removing the unwanted grocery-management features from the application UI.
 
+## Android build
+
+The GitHub Actions workflow builds a release APK and publishes it as the `lista-de-la-compra-apk` workflow artifact.
+
 The upstream project is available at:
 https://github.com/jaimegonzalezfabregas/lista_de_la_compra
