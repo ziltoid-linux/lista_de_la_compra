@@ -1,20 +1,46 @@
-name: makefile.yml
+name: Android build
+
 on:
   push:
     branches:
       - cliente-web
+      - stripped-down-grocery-list
+  pull_request:
+    branches:
+      - master
 
+permissions:
+  contents: write
 
 jobs:
-    build:
-        name: Build APK in Container
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+  build:
+    name: Build APK and regenerate Drift code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Run make build-apk-container
-              run: cd flutterfiles &&  make build-apk-container
+      - name: Run build_runner
+        run: cd flutterfiles && make build-runner
 
+      - name: Build release APK
+        run: cd flutterfiles && make build-apk-container
 
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: lista-de-la-compra-apk
+          path: flutterfiles/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
 
+      - name: Commit generated Drift database if changed
+        run: |
+          git add packages/lista_de_la_compra_backend/lib/src/db/database.g.dart
+          if git diff --cached --quiet; then
+            echo "Generated Drift file is already up to date."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Regenerate Drift database"
+            git push
+          fi

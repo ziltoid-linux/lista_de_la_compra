@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lista_de_la_compra/UI/houses/house_selector.dart';
-import 'package:lista_de_la_compra/UI/route_planning/map_view.dart';
 import 'package:lista_de_la_compra/UI/products/product_list_display.dart';
 import 'package:lista_de_la_compra/l10n/app_localizations.dart';
 import 'package:lista_de_la_compra/shared_preference_providers/persistent_selected_houses_provider.dart';
@@ -51,16 +50,6 @@ class ProductHome extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: HouseSelector(enviromentId: enviromentId),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton.icon(
-                    label: Text(appLoc.optimizeRoute),
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => MapView(enviromentId)));
-                    },
-                    icon: Icon(Icons.route),
-                  ),
                 ),
               ],
             ),

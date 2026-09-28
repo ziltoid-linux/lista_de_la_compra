@@ -1,31 +1,29 @@
-# 🛒 Lista de la Compra (Shopping List)
+# 🛒 Lista de la Compra — stripped-down fork
 
-[<img src="https://f-droid.org/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/com.jaimegonzalezfabregas.shoppinglist/)
+This fork is a simplified grocery-list version of the original app.
 
-Or download the latest APK from the [Releases Section](https://github.com/jaimegonzalezfabregas/lista_de_la_compra/releases/latest).
+## Removed from the user-facing application
 
+- Recipe management
+- Meal/recipe scheduler
+- Supermarket management
+- Aisle organization
+- Supermarket route optimization
+- Recipe/product associations in the product UI
 
-This is a shopping list app, with integrated meals scheduler. It features local sync, that is, synchronization between instances without the need of a central server. A headless server is also provided.
+## Kept
 
-## 🏗️ Architecture
-Some offline games (like Minecraft) can be used either offline, as a client of other instances, or serve its game to other clients.
+- Local shopping lists
+- Products
+- Multiple household/list selections
+- Local peer-to-peer synchronization over a trusted local network
+- Import/export and synchronization infrastructure
 
-*Lista de la compra* can act as server and client simultaneusly, in a _peer to peer_ achitecture.
+The original project is a Flutter application with local peer-to-peer synchronization. This fork deliberately keeps the existing synchronization architecture while removing the unwanted grocery-management features from the application UI.
 
-- When acting as a server, the UI shows all the reachable IP addresses, and also anounces itself using zeroconf/mdns.
-- When acting as a client, the UI shows the detected servers, and allows to enter a custom server.
+## Android build
 
-### 🛠️ Use Cases
-- Padawan Level: Use a single app instance to track your groceries 
-- Jedi Knight Level: Share your databases between your family and synchronize your instances with your home Wi-Fi 
-- Jedi Master Level: When shopping, turn on the access point (Wi-Fi tethering) on one of your smartphones, and connect the remaining instances to that Wi-Fi 
-- Sith Level: Install a VPN server on your home or VPS, connect all your smartphones to that VPN 
-- Sith lord level: Add the [standalone server](./packages/lista_de_la_compra_server/README.md) to your VPN
+The GitHub Actions workflow builds a release APK and publishes it as the `lista-de-la-compra-apk` workflow artifact.
 
-## 🔒 Encryption
-In terms of encryption we have no encryption. Please connect only to fully trusted networks while synchronizing the app databases.
-
-## 🖥️ Standalone Server
-You can host a server in your own LAN. See the instructions in [lista_de_la_compra_server](./packages/lista_de_la_compra_server/README.md).
+The upstream project is available at:
+https://github.com/jaimegonzalezfabregas/lista_de_la_compra
