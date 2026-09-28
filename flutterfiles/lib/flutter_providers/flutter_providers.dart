@@ -50,17 +50,11 @@ class FlutterHttpServerStateProvider extends HttpServerStateProvider with Change
 
 class FlutterProductProvider extends ProductProvider with ChangeNotifier{}
 
-class FlutterRecipeProvider extends RecipeProvider with ChangeNotifier{}
 
-class FlutterScheduleProvider extends ScheduleProvider with ChangeNotifier {}
 
-class FlutterSuperMarketProvider extends SuperMarketProvider with ChangeNotifier {}
 
-class FlutterAisleProvider extends AisleProvider with ChangeNotifier {}
 
-class FlutterProductAisleProvider extends ProductAisleProvider with ChangeNotifier {}
 
-class FlutterMapTileProvider extends MapTileProvider with ChangeNotifier {}
 
 class FlutterHouseProvider extends HouseProvider with ChangeNotifier {}
 
