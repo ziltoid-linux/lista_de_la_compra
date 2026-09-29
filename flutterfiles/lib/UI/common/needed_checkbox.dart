@@ -3,7 +3,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:lista_de_la_compra/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../flutter_providers/flutter_providers.dart';
-
 import 'package:lista_de_la_compra_backend/lista_de_la_compra_backend.dart';
 
 final Duration undoDuration = const Duration(seconds: 2);
@@ -37,21 +36,19 @@ class _UndoToastState extends State<UndoToast> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations appLoc = AppLocalizations.of(context)!;
-    ProductProvider productProvider = context.watch<FlutterProductProvider>();
-    NeededProductProvider neededProductProvider = context.watch<FlutterNeededProductProvider>();
+    final AppLocalizations appLoc = AppLocalizations.of(context)!;
+    final ProductProvider productProvider = context.watch<FlutterProductProvider>();
+    final NeededProductProvider neededProductProvider = context.watch<FlutterNeededProductProvider>();
 
     return AnimatedBuilder(
       animation: _controller,
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          FutureBuilder<Product?>(
+          FutureBuilder<dynamic>(
             future: productProvider.getProductById(widget.productId),
             builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return Text(snapshot.data!.name);
-              }
+              if (snapshot.hasData) return Text(snapshot.data.name);
               return Text(appLoc.product);
             },
           ),
@@ -65,19 +62,20 @@ class _UndoToastState extends State<UndoToast> with TickerProviderStateMixin {
           ),
         ],
       ),
-      builder: (context, child) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25.0),
-            gradient: LinearGradient(
-              stops: [_controller.value, _controller.value],
-              colors: [Theme.of(context).colorScheme.surfaceContainerHighest, Theme.of(context).colorScheme.surfaceContainerHigh],
-            ),
+      builder: (context, child) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25.0),
+          gradient: LinearGradient(
+            stops: [_controller.value, _controller.value],
+            colors: [
+              Theme.of(context).colorScheme.surfaceContainerHighest,
+              Theme.of(context).colorScheme.surfaceContainerHigh
+            ],
           ),
-          child: child,
-        );
-      },
+        ),
+        child: child,
+      ),
     );
   }
 }
@@ -85,8 +83,11 @@ class _UndoToastState extends State<UndoToast> with TickerProviderStateMixin {
 Future<void> showUndoToast(FToast fToast, String productId, String houseId, bool wasNeeded) async {
   fToast.removeCustomToast();
   fToast.removeQueuedCustomToasts();
-
-  fToast.showToast(child: UndoToast(productId, houseId, wasNeeded, fToast), gravity: ToastGravity.TOP, toastDuration: undoDuration);
+  fToast.showToast(
+    child: UndoToast(productId, houseId, wasNeeded, fToast),
+    gravity: ToastGravity.TOP,
+    toastDuration: undoDuration,
+  );
 }
 
 class NeededCheckbox extends StatefulWidget {
@@ -104,13 +105,9 @@ class _NeededCheckboxState extends State<NeededCheckbox> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations appLoc = AppLocalizations.of(context)!;
-    final FToast fToast = FToast();
-    fToast.init(context);
-
-    NeededProductProvider neededProductProvider = context.watch<FlutterNeededProductProvider>();
-    HouseProvider houseProvider = context.watch<FlutterHouseProvider>();
-
-    Future<List<dynamic>> combined = Future.wait<dynamic>([
+    final NeededProductProvider neededProductProvider = context.watch<FlutterNeededProductProvider>();
+    final HouseProvider houseProvider = context.watch<FlutterHouseProvider>();
+    final Future<List<dynamic>> combined = Future.wait<dynamic>([
       neededProductProvider.isNeeded(widget.houseId, widget.productId),
       houseProvider.getHouseById(widget.houseId),
     ]);
@@ -118,22 +115,17 @@ class _NeededCheckboxState extends State<NeededCheckbox> {
     return FutureBuilder<List<dynamic>>(
       future: combined,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Text(appLoc.loading);
-        }
+        if (!snapshot.hasData) return Text(appLoc.loading);
 
-        final List<dynamic> combinedResult = snapshot.data!;
-
-        final bool isNeeded = combinedResult[0] ?? false;
-        final House house = combinedResult[1];
-
+        final List<dynamic> result = snapshot.data!;
+        final bool isNeeded = result[0] ?? false;
+        final dynamic house = result[1];
         final Color checkboxColor = Color(house.color);
 
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (isNeeded) Text(appLoc.toBuy, style: TextStyle(color: checkboxColor)),
-
             Checkbox(
               value: isNeeded,
               fillColor: WidgetStateProperty.resolveWith<Color>((states) {
@@ -142,10 +134,7 @@ class _NeededCheckboxState extends State<NeededCheckbox> {
               }),
               onChanged: (bool? value) async {
                 final Duration? delay = widget.delay;
-                if (delay != null) {
-                  await Future.delayed(delay);
-                }
-
+                if (delay != null) await Future.delayed(delay);
                 neededProductProvider.setNeeded(widget.houseId, widget.productId, value ?? false);
                 showUndoToast(fToast, widget.productId, widget.houseId, !(value ?? false));
               },
@@ -154,5 +143,11 @@ class _NeededCheckboxState extends State<NeededCheckbox> {
         );
       },
     );
+  }
+
+  FToast get fToast {
+    final FToast toast = FToast();
+    toast.init(context);
+    return toast;
   }
 }
