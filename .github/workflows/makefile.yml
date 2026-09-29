@@ -1,17 +1,38 @@
-name: makefile.yml
+name: Android build
+
 on:
   push:
     branches:
       - cliente-web
+      - simple-grocery-list
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
-jobs:
-    build:
-        name: Build APK in Container
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+permissions:
+  contents: write
 
-            - name: Run make build-apk-container
-              run: cd flutterfiles && make build-apk-container
+jobs:
+  build:
+    name: Build APK and regenerate Drift code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Flutter container
+        run: ./flutterw.sh --build
+
+      - name: Run build_runner
+        run: ./flutterw.sh --exec sh -c 'cd flutterfiles && dart run build_runner build'
+
+      - name: Build release APK
+        run: ./flutterw.sh --exec sh -c 'cd flutterfiles && flutter build apk --release'
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: lista-de-la-compra-apk
+          path: flutterfiles/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
