@@ -9,6 +9,9 @@ Or download the latest APK from the [Releases Section](https://github.com/jaimeg
 
 This is a shopping list app, with integrated meals scheduler. It features local sync, that is, synchronization between instances without the need of a central server. A headless server is also provided.
 
+
+This branch contains the simplified grocery-list build.
+
 ## 🏗️ Architecture
 Some offline games (like Minecraft) can be used either offline, as a client of other instances, or serve its game to other clients.
 
