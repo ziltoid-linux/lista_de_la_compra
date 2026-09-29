@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lista_de_la_compra/UI/common/needed_checkbox.dart';
-import 'package:lista_de_la_compra/UI/products/common.dart';
 import 'package:lista_de_la_compra/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../flutter_providers/flutter_providers.dart';
