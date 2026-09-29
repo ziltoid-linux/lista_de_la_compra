@@ -21,25 +21,13 @@ class ExporControls extends StatelessWidget {
     final AppLocalizations appLoc = AppLocalizations.of(context)!;
     EnvironmentProvider environmentProvider = context.watch<FlutterEnvironmentProvider>();
     ProductProvider productProvider = context.watch<FlutterProductProvider>();
-    RecipeProvider recipeProvider = context.watch<FlutterRecipeProvider>();
-    ScheduleProvider scheduleProvider = context.watch<FlutterScheduleProvider>();
-    SuperMarketProvider superMarketProvider = context.watch<FlutterSuperMarketProvider>();
-    AisleProvider aisleProvider = context.watch<FlutterAisleProvider>();
-    ProductAisleProvider productAisleProvider = context.watch<FlutterProductAisleProvider>();
-    MapTileProvider mapTileProvider = context.watch<FlutterMapTileProvider>();
     HouseProvider houseProvider = context.watch<FlutterHouseProvider>();
     NeededProductProvider neededProductProvider = context.watch<FlutterNeededProductProvider>();
 
-    final Future serialized = serializeEnvironment(
+    final Future serialized = serializeGroceryListEnvironment(
       enviromentId,
       environmentProvider,
       productProvider,
-      recipeProvider,
-      scheduleProvider,
-      superMarketProvider,
-      aisleProvider,
-      productAisleProvider,
-      mapTileProvider,
       houseProvider,
       neededProductProvider,
     );
@@ -89,4 +77,24 @@ class ExporControls extends StatelessWidget {
       ],
     );
   }
+}
+
+Future<Map<String, dynamic>> serializeGroceryListEnvironment(
+  String enviromentId,
+  EnvironmentProvider environmentProvider,
+  ProductProvider productProvider,
+  HouseProvider houseProvider,
+  NeededProductProvider neededProductProvider,
+) async {
+  final environment = (await environmentProvider.getEnvironmentById(enviromentId))!;
+  final products = await productProvider.getSyncProductList(enviromentId);
+  final houses = await houseProvider.getSyncHouseList(enviromentId);
+  final neededProducts = await neededProductProvider.getSyncNeededProductList(enviromentId);
+
+  return {
+    "environment": environment.toJson(),
+    "products": products.map((product) => product.toJson()).toList(),
+    "houses": houses.map((house) => house.toJson()).toList(),
+    "needed_products": neededProducts.map((neededProduct) => neededProduct.toJson()).toList(),
+  };
 }
