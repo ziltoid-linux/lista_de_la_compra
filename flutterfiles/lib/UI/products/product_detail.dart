@@ -4,7 +4,6 @@ import 'package:lista_de_la_compra/UI/products/product_home.dart';
 import 'package:lista_de_la_compra/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../flutter_providers/flutter_providers.dart';
-
 import 'package:lista_de_la_compra_backend/lista_de_la_compra_backend.dart';
 
 class ProductDetail extends StatelessWidget {
@@ -19,8 +18,8 @@ class ProductDetail extends StatelessWidget {
     final ProductProvider productProvider = context.watch<FlutterProductProvider>();
     final HouseProvider houseProvider = context.watch<FlutterHouseProvider>();
 
-    final Future<Product?> productFuture = productProvider.getProductById(productId);
-    final Future<List<House>> housesFuture = houseProvider.getHouseList(enviromentId);
+    final Future<dynamic> productFuture = productProvider.getProductById(productId);
+    final Future<List<dynamic>> housesFuture = houseProvider.getHouseList(enviromentId);
 
     return Scaffold(
       appBar: AppBar(
@@ -35,57 +34,53 @@ class ProductDetail extends StatelessWidget {
         actions: <Widget>[
           PopupMenuButton<String>(
             onSelected: (s) {},
-            itemBuilder: (BuildContext context) {
-              return [
-                PopupMenuItem(
-                  child: Row(children: [Icon(Icons.delete), SizedBox(width: 8), Text(appLoc.delete)]),
-                  onTap: () {
-                    Navigator.pop(context);
-                    productProvider.deleteProductById(productId);
-                  },
-                ),
-                PopupMenuItem(
-                  child: Row(children: [Icon(Icons.edit), SizedBox(width: 8), Text(appLoc.editName)]),
-                  onTap: () {
-                    final textControler = TextEditingController();
-                    productFuture.then((Product? p) {
-                      if (p != null) textControler.text = p.name;
-                    });
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: Text(appLoc.editName),
-                          content: TextField(
-                            decoration: InputDecoration(labelText: appLoc.name),
-                            controller: textControler,
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: Text(appLoc.cancel),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                productProvider.setProductName(productId, textControler.text);
-                                Navigator.of(context).pop();
-                              },
-                              child: Text(appLoc.save),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-              ];
-            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem(
+                child: Row(children: [const Icon(Icons.delete), const SizedBox(width: 8), Text(appLoc.delete)]),
+                onTap: () {
+                  Navigator.pop(context);
+                  productProvider.deleteProductById(productId);
+                },
+              ),
+              PopupMenuItem(
+                child: Row(children: [const Icon(Icons.edit), const SizedBox(width: 8), Text(appLoc.editName)]),
+                onTap: () {
+                  final textController = TextEditingController();
+                  productFuture.then((dynamic p) {
+                    if (p != null) textController.text = p.name;
+                  });
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(appLoc.editName),
+                      content: TextField(
+                        decoration: InputDecoration(labelText: appLoc.name),
+                        controller: textController,
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(appLoc.cancel),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            productProvider.setProductName(productId, textController.text);
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(appLoc.save),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
         ],
-        title: FutureBuilder<Product?>(
+        title: FutureBuilder<dynamic>(
           future: productFuture,
           builder: (context, snapshot) {
-            if (snapshot.hasData) return Text(snapshot.data!.name);
+            if (snapshot.hasData) return Text(snapshot.data.name);
             if (snapshot.hasError) return Text("$snapshot");
             return Text(appLoc.loading);
           },
@@ -93,23 +88,17 @@ class ProductDetail extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
-        child: FutureBuilder<List<House>>(
+        child: FutureBuilder<List<dynamic>>(
           future: housesFuture,
           builder: (context, snapshot) {
             if (!snapshot.hasData) return const SizedBox.shrink();
-
             return ListView(
               children: [
                 Text(appLoc.houses, style: Theme.of(context).textTheme.titleSmall),
-                ...snapshot.data!.map(
-                  (house) => ListTile(
-                    title: Text(house.name),
-                    trailing: NeededCheckbox(
-                      productId: productId,
-                      houseId: house.id,
-                    ),
-                  ),
-                ),
+                ...snapshot.data!.map<Widget>((dynamic house) => ListTile(
+                  title: Text(house.name),
+                  trailing: NeededCheckbox(productId: productId, houseId: house.id),
+                )),
               ],
             );
           },
