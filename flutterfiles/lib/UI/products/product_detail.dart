@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:lista_de_la_compra/UI/common/needed_checkbox.dart';
-import 'package:lista_de_la_compra/UI/common/searchable_list_view.dart';
 import 'package:lista_de_la_compra/UI/products/common.dart';
 import 'package:lista_de_la_compra/l10n/app_localizations.dart';
-import 'package:lista_de_la_compra/UI/recipies/recipe_detail.dart';
 import 'package:provider/provider.dart';
 import '../../flutter_providers/flutter_providers.dart';
 
 import 'package:lista_de_la_compra_backend/lista_de_la_compra_backend.dart';
-
-// todo
-// see history
-// see locations in diferent markets
 
 class ProductDetail extends StatelessWidget {
   final String productId;
@@ -25,58 +19,6 @@ class ProductDetail extends StatelessWidget {
     ProductProvider productProvider = context.watch<FlutterProductProvider>();
 
     var productFuture = productProvider.getProductById(productId);
-
-    TextEditingController textEditingController = TextEditingController();
-    (() async {
-      var product = await productFuture;
-      if (product != null) {
-        textEditingController.text = product.name;
-      }
-    })();
-
-    RecipeProvider recipeProvider = context.watch<FlutterRecipeProvider>();
-
-    var recepiesFuture = recipeProvider.getRecepiesOfProductById(productId);
-
-    var recipeList = FutureBuilder(
-      future: recepiesFuture,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Text(appLoc.loading);
-        }
-
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(8)),
-            child: Searchablelistview<(RecipeProduct, Recipe)>(
-              elements: snapshot.data!,
-              elementToListTile: (recipe, tag) => ListTile(
-                title: tag,
-                subtitle: Text(recipe.$1.amount),
-                trailing: IconButton(
-                  icon: Icon(Icons.arrow_outward),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return RecipeDetail(recipe.$2.id, enviromentId);
-                      },
-                    ),
-                  ),
-                ),
-              ),
-              elementToTag: (recipe) => recipe.$2.name,
-            ),
-          ),
-        );
-      },
-    );
-
-    ScheduleProvider scheduleProvider = context.watch<FlutterScheduleProvider>();
-    HouseProvider houseProvider = context.watch<FlutterHouseProvider>();
-
-    var housesFuture = houseProvider.getHouseList(enviromentId);
 
     return Scaffold(
       appBar: AppBar(
@@ -98,7 +40,9 @@ class ProductDetail extends StatelessWidget {
                   onTap: () {
                     TextEditingController textControler = TextEditingController();
                     productFuture.then((Product? p) {
-                      textControler.text = p!.name;
+                      if (p != null) {
+                        textControler.text = p.name;
+                      }
                     });
                     showDialog(
                       context: context,
@@ -111,9 +55,7 @@ class ProductDetail extends StatelessWidget {
                           ),
                           actions: [
                             TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
+                              onPressed: () => Navigator.of(context).pop(),
                               child: Text(appLoc.cancel),
                             ),
                             TextButton(
@@ -152,26 +94,20 @@ class ProductDetail extends StatelessWidget {
           shrinkWrap: true,
           children: [
             Text(appLoc.houses, style: Theme.of(context).textTheme.titleSmall),
-
             FutureBuilder<List<House>>(
-              future: housesFuture,
+              future: context.read<HouseProvider>().getHouseList(enviromentId),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return SizedBox.shrink();
                 return Column(
                   children: snapshot.data!.map((house) {
                     return ListTile(
                       title: Text(house.name),
-                      subtitle: getNeededAmount(scheduleProvider, productId, [house.id], context),
                       trailing: NeededCheckbox(productId: productId, houseId: house.id),
                     );
                   }).toList(),
                 );
               },
             ),
-
-            Text(appLoc.recipeList, style: Theme.of(context).textTheme.titleSmall),
-
-            SizedBox(height: 500, child: recipeList),
           ],
         ),
       ),
