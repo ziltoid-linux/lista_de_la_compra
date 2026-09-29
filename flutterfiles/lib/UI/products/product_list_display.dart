@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:lista_de_la_compra/UI/common/needed_checkbox.dart';
 import 'package:lista_de_la_compra/UI/common/searchable_list_view.dart';
-import 'package:lista_de_la_compra/UI/products/common.dart';
 import 'package:lista_de_la_compra/UI/products/product_detail.dart';
 import 'package:lista_de_la_compra/l10n/app_localizations.dart';
-import 'package:lista_de_la_compra/shared_preference_providers/persistant_selected_market_provider.dart';
-import 'package:lista_de_la_compra_backend/lista_de_la_compra_backend.dart';
 import 'package:provider/provider.dart';
 import '../../flutter_providers/flutter_providers.dart';
+
+import 'package:lista_de_la_compra_backend/lista_de_la_compra_backend.dart';
 
 class ProductListDisplay extends StatelessWidget {
   final List<Product> products;
   final bool isNeededList;
   final String enviromentId;
   final List<String> selectedHouseIds;
-  final List<String> categoryOrdering;
 
   const ProductListDisplay(
     this.products,
@@ -22,15 +20,11 @@ class ProductListDisplay extends StatelessWidget {
     this.enviromentId,
     this.selectedHouseIds, {
     super.key,
-    this.categoryOrdering = const [],
   });
 
   @override
   Widget build(BuildContext context) {
-    ScheduleProvider scheduleProvider = context.watch<FlutterScheduleProvider>();
     final ProductProvider productProvider = context.watch<FlutterProductProvider>();
-    final SelectedMarketProvider selectedMarketProvider = context.watch<PersistantSelectedMarketProvider>();
-    final ProductAisleProvider productAisleProvider = context.watch<FlutterProductAisleProvider>();
     final NeededProductProvider neededProductProvider = context.watch<FlutterNeededProductProvider>();
     final HouseProvider houseProvider = context.watch<FlutterHouseProvider>();
     final AppLocalizations appLoc = AppLocalizations.of(context)!;
@@ -38,15 +32,15 @@ class ProductListDisplay extends StatelessWidget {
     return FutureBuilder<List<House>>(
       future: houseProvider.getHouseList(enviromentId),
       builder: (context, houseSnapshot) {
-        var allHouses = houseSnapshot.data ?? [];
-        var selectedHouses = allHouses.where((h) => selectedHouseIds.contains(h.id)).toList();
+        final allHouses = houseSnapshot.data ?? <House>[];
+        final selectedHouses = allHouses.where((h) => selectedHouseIds.contains(h.id)).toList();
 
         return FutureBuilder<Set<String>>(
           future: neededProductProvider.getNeededProductIds(enviromentId, selectedHouseIds),
           builder: (context, neededSnapshot) {
-            var neededProductIds = neededSnapshot.data ?? {};
+            final neededProductIds = neededSnapshot.data ?? <String>{};
 
-            var displayProducts = isNeededList
+            final displayProducts = isNeededList
                 ? products.where((p) => neededProductIds.contains(p.id)).toList()
                 : products;
 
@@ -56,12 +50,6 @@ class ProductListDisplay extends StatelessWidget {
               elementToListTile: (Product p, RichText tag) {
                 return ListTile(
                   title: tag,
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                       getNeededAmount(scheduleProvider, p.id, selectedHouseIds, context),
-                    ],
-                  ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -78,7 +66,12 @@ class ProductListDisplay extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.arrow_outward),
                         onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetail(p.id, enviromentId)));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductDetail(p.id, enviromentId),
+                            ),
+                          );
                         },
                       ),
                     ],
@@ -87,30 +80,23 @@ class ProductListDisplay extends StatelessWidget {
               },
               elementToTag: (Product p) => p.name,
               newElement: (String name) async {
-                var allProducts = await productProvider.getDisplayProductList(enviromentId);
-                if (allProducts.any((e) => e.name.toLowerCase() == name.toLowerCase())) {
-                  var referenced = allProducts.firstWhere((e) => e.name.toLowerCase() == name.toLowerCase());
-                  for (var houseId in selectedHouseIds) {
+                final allProducts = await productProvider.getDisplayProductList(enviromentId);
+                final existing = allProducts.where(
+                  (e) => e.name.toLowerCase() == name.toLowerCase(),
+                );
+
+                if (existing.isNotEmpty) {
+                  final referenced = existing.first;
+                  for (final houseId in selectedHouseIds) {
                     neededProductProvider.setNeeded(houseId, referenced.id, true);
                   }
                 } else {
-                  String newId = await productProvider.addProduct(name, enviromentId);
-                  for (var houseId in selectedHouseIds) {
+                  final newId = await productProvider.addProduct(name, enviromentId);
+                  for (final houseId in selectedHouseIds) {
                     neededProductProvider.setNeeded(houseId, newId, true);
                   }
                 }
               },
-              elementCategories: (Product p) async {
-                String? selectedSupermarket = await selectedMarketProvider.getSelectedSupermarket(enviromentId);
-
-                if (selectedSupermarket == null) {
-                  return [];
-                }
-
-                var aisles = await productAisleProvider.getAisleOfProductInSupermarket(p.id, selectedSupermarket);
-                return aisles.map((a) => (a.id, a.name)).toList();
-              },
-              categoryOrdering: categoryOrdering,
             );
           },
         );
