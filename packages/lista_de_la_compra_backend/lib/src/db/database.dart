@@ -1,29 +1,22 @@
 
 import 'package:drift/drift.dart';
-import 'package:lista_de_la_compra_backend/src/db/map_tile_model.dart';
 import 'environments.dart';
 import 'house_model.dart';
 import 'http_server_model.dart';
 import 'needed_product_model.dart';
 import 'product_model.dart';
-import 'recipe_model.dart';
-import 'schedule.dart';
-import 'package:uuid/uuid.dart';
-import 'supermarket_model.dart';
-import 'aisle_model.dart';
-import 'product_aisle_model.dart';
 
 part 'database.g.dart';
 
 typedef Environment = Enviroment;
 
-@DriftDatabase(tables: [Houses, NeededProducts, MapTiles, ScheduleEntries, Products, Recipes, RecipeProducts, HttpServer, Enviroments, SuperMarkets, Aisles, ProductAisles])
+@DriftDatabase(tables: [Houses, NeededProducts, Products, HttpServer, Enviroments])
 class AppDatabase extends _$AppDatabase {
 
   AppDatabase(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -164,6 +157,17 @@ class AppDatabase extends _$AppDatabase {
             LIMIT 1
           ) WHERE house_id IS NULL;
         ''');
+      }
+      if (from < 7) {
+        // Remove legacy supermarket, aisle, route-map, recipe, and schedule tables.
+        // They are no longer part of the application or synchronization protocol.
+        await customStatement('DROP TABLE IF EXISTS product_aisles;');
+        await customStatement('DROP TABLE IF EXISTS aisles;');
+        await customStatement('DROP TABLE IF EXISTS map_tiles;');
+        await customStatement('DROP TABLE IF EXISTS schedule_entries;');
+        await customStatement('DROP TABLE IF EXISTS recipe_products;');
+        await customStatement('DROP TABLE IF EXISTS recipes;');
+        await customStatement('DROP TABLE IF EXISTS super_markets;');
       }
     },
   );
