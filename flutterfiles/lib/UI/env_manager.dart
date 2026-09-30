@@ -289,12 +289,6 @@ class EnvSelect extends StatelessWidget {
                     context,
                     environmentProvider,
                     productProvider,
-                    recipeProvider,
-                    scheduleProvider,
-                    supermarketProvider,
-                    aisleProvider,
-                    productAisleProvider,
-                    mapTileProvider,
                     houseProvider,
                     neededProductProvider,
                   );
