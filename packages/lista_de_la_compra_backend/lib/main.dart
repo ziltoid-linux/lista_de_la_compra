@@ -16,29 +16,17 @@ Future runServer() async {
   AppDatabaseSingleton.setQueryExecutor(executor);
 
   final environmentProvider = RamEnvironmentProvider();
-  final recipeProvider = RamRecipeProvider();
   final productProvider = RamProductProvider();
-  final scheduleProvider = RamScheduleProvider();
   final httpServerProvider = RamHttpServerProvider();
   final sharedPreferencesProvider = RamSharedPreferencesProvider();
   final openConnectionProvider = RamOpenConnectionProvider();
-  final supermarketProvider = RamSuperMarketProvider();
-  final aisleProvider = RamAisleProvider();
-  final productAisleProvider = RamProductAisleProvider();
-  final mapTileProvider = RamMapTileProvider();
   final houseProvider = RamHouseProvider();
   final neededProductProvider = RamNeededProductProvider();
 
   final OpenConnectionManager openConnectionManager = OpenConnectionManager(
     openConnectionProvider,
     productProvider,
-    recipeProvider,
-    scheduleProvider,
     environmentProvider,
-    supermarketProvider,
-    aisleProvider,
-    productAisleProvider,
-    mapTileProvider,
     houseProvider,
     neededProductProvider,
     sharedPreferencesProvider,

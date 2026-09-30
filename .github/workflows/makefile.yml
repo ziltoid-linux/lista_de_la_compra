@@ -1,17 +1,58 @@
-name: makefile.yml
+name: Android build
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches:
       - cliente-web
+      - simple-grocery-list
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
-jobs:
-    build:
-        name: Build APK in Container
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+permissions:
+  contents: write
 
-            - name: Run make build-apk-container
-              run: cd flutterfiles && make build-apk-container
+jobs:
+  build:
+    name: Build APK and regenerate Drift code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Flutter container
+        run: ./flutterw.sh --build
+
+      - name: Run backend build_runner
+        run: ./flutterw.sh --exec sh -c 'cd packages/lista_de_la_compra_backend && dart run build_runner build'
+
+      - name: Run Flutter pub get
+        run: ./flutterw.sh --exec sh -c 'cd flutterfiles && flutter pub get'
+
+      - name: Run Flutter build_runner
+        run: ./flutterw.sh --exec sh -c 'cd flutterfiles && dart run build_runner build'
+
+      - name: Commit regenerated Drift code
+        run: |
+          if ! git diff --quiet -- packages/lista_de_la_compra_backend/lib/src/db/database.g.dart flutterfiles/pubspec.lock; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add packages/lista_de_la_compra_backend/lib/src/db/database.g.dart flutterfiles/pubspec.lock
+            git commit -m "Regenerate Drift code after database cleanup"
+            git push
+          fi
+
+      - name: Build release APK
+        run: ./flutterw.sh --exec sh -c 'cd flutterfiles && flutter build apk --release'
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: lista-de-la-compra-apk
+          path: flutterfiles/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error

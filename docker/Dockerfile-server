@@ -10,6 +10,10 @@ COPY ./packages .
 RUN ls -laRt
 WORKDIR /app/lista_de_la_compra_server
 RUN ls -laRt
+WORKDIR /app/lista_de_la_compra_backend
+RUN dart pub get
+RUN dart run build_runner build
+WORKDIR /app/lista_de_la_compra_server
 RUN dart pub get
 RUN dart build cli bin/server.dart --output bin/server_out
 

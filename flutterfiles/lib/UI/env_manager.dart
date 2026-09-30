@@ -223,12 +223,6 @@ class EnvSelect extends StatelessWidget {
     BuildContext context,
     EnvironmentProvider environmentProvider,
     ProductProvider productProvider,
-    RecipeProvider recipeProvider,
-    ScheduleProvider scheduleProvider,
-    SuperMarketProvider supermarketProvider,
-    AisleProvider aisleProvider,
-    ProductAisleProvider productAisleProvider,
-    MapTileProvider mapTileProvider,
     HouseProvider houseProvider,
     NeededProductProvider neededProductProvider,
   ) async {
@@ -249,12 +243,6 @@ class EnvSelect extends StatelessWidget {
         serializedState,
         environmentProvider,
         productProvider,
-        recipeProvider,
-        scheduleProvider,
-        supermarketProvider,
-        aisleProvider,
-        productAisleProvider,
-        mapTileProvider,
         houseProvider,
         neededProductProvider,
       );
@@ -265,12 +253,6 @@ class EnvSelect extends StatelessWidget {
   Widget build(BuildContext context) {
     EnvironmentProvider environmentProvider = context.watch<FlutterEnvironmentProvider>();
     ProductProvider productProvider = context.watch<FlutterProductProvider>();
-    RecipeProvider recipeProvider = context.watch<FlutterRecipeProvider>();
-    ScheduleProvider scheduleProvider = context.watch<FlutterScheduleProvider>();
-    SuperMarketProvider supermarketProvider = context.watch<FlutterSuperMarketProvider>();
-    AisleProvider aisleProvider = context.watch<FlutterAisleProvider>();
-    ProductAisleProvider productAisleProvider = context.watch<FlutterProductAisleProvider>();
-    MapTileProvider mapTileProvider = context.watch<FlutterMapTileProvider>();
     HouseProvider houseProvider = context.watch<FlutterHouseProvider>();
     NeededProductProvider neededProductProvider = context.watch<FlutterNeededProductProvider>();
 
@@ -307,12 +289,6 @@ class EnvSelect extends StatelessWidget {
                     context,
                     environmentProvider,
                     productProvider,
-                    recipeProvider,
-                    scheduleProvider,
-                    supermarketProvider,
-                    aisleProvider,
-                    productAisleProvider,
-                    mapTileProvider,
                     houseProvider,
                     neededProductProvider,
                   );

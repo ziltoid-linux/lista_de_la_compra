@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:lista_de_la_compra/l10n/app_localizations.dart';
-import 'package:lista_de_la_compra/shared_preference_providers/persistant_shared_preferences_provider.dart';
 import 'package:lista_de_la_compra_backend/lista_de_la_compra_backend.dart';
 import 'package:nsd/nsd.dart';
 import 'package:provider/provider.dart';
@@ -10,8 +9,6 @@ import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
 
 import '../../flutter_providers/flutter_providers.dart';
-
-class DiscoveredPeer {}
 
 class _NearbyServers extends State<NearbyServers> {
   Discovery? discovery;
@@ -38,7 +35,7 @@ class _NearbyServers extends State<NearbyServers> {
     discovery?.removeListener(notifyUpdate);
   }
 
-  Future<(Iterable<Service>, List<Service>)> getDedupedServices(SharedPreferencesProvider sharedPreferencesProvider) async {
+  Future<(Iterable<Service>, List<Service>)> getDedupedServices() async {
     var allServices = discovery!.services;
     List<NetworkInterface> interfaces = await NetworkInterface.list();
     List<InternetAddress> selfAddresses = interfaces.map((e) => e.addresses).flattenedToList;
@@ -63,13 +60,12 @@ class _NearbyServers extends State<NearbyServers> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations appLoc = AppLocalizations.of(context)!;
-    SharedPreferencesProvider sharedPreferencesProvider = context.watch<PersistantSharedPreferencesProvider>();
     HttpServerProvider httpServerProvider = context.watch<FlutterHttpServerProvider>();
 
     if (discovery == null) {
       return Text(appLoc.scanStarted);
     } else {
-      Future<(Iterable<Service>, List<Service>)> dedupedServices = getDedupedServices(sharedPreferencesProvider);
+      Future<(Iterable<Service>, List<Service>)> dedupedServices = getDedupedServices();
 
       if (discovery!.services.isEmpty) {
         return Text(appLoc.noResultsYet);
