@@ -5,9 +5,6 @@ import 'package:lista_de_la_compra/UI/selected_environment_fork.dart';
 import 'package:lista_de_la_compra/shared_preference_providers/persistant_shared_preferences_provider.dart';
 import 'package:lista_de_la_compra/shared_preference_providers/persistent_selected_houses_provider.dart';
 import 'package:lista_de_la_compra/sync/http_client_service.dart';
-// import 'package:lista_de_la_compra_backend/src/sync/http_server_manager.dart';
-// import 'package:lista_de_la_compra_backend/src/sync/open_connection_manager.dart';
-// import 'package:lista_de_la_compra_backend/src/db/database.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'flutter_providers/flutter_providers.dart';
@@ -22,7 +19,6 @@ Future main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     AppDatabaseSingleton.setQueryExecutor(
@@ -49,15 +45,9 @@ class MyApp extends StatelessWidget {
     );
 
     final FlutterEnvironmentProvider environmentProvider = FlutterEnvironmentProvider();
-    final FlutterRecipeProvider recipeProvider = FlutterRecipeProvider();
     final FlutterProductProvider productProvider = FlutterProductProvider();
-    final FlutterScheduleProvider scheduleProvider = FlutterScheduleProvider();
     final FlutterHttpServerProvider httpServerProvider = FlutterHttpServerProvider();
     final FlutterOpenConnectionProvider openConnectionProvider = FlutterOpenConnectionProvider();
-    final FlutterSuperMarketProvider supermarketProvider = FlutterSuperMarketProvider();
-    final FlutterAisleProvider aisleProvider = FlutterAisleProvider();
-    final FlutterProductAisleProvider productAisleProvider = FlutterProductAisleProvider();
-    final FlutterMapTileProvider mapTileProvider = FlutterMapTileProvider();
     final FlutterHouseProvider houseProvider = FlutterHouseProvider();
     final FlutterNeededProductProvider neededProductProvider = FlutterNeededProductProvider();
 
@@ -67,16 +57,9 @@ class MyApp extends StatelessWidget {
     final OpenConnectionManager openConnectionManager = OpenConnectionManager(
       openConnectionProvider,
       productProvider,
-      recipeProvider,
-      scheduleProvider,
       environmentProvider,
-      supermarketProvider,
-      aisleProvider,
-      productAisleProvider,
-      mapTileProvider,
       houseProvider,
       neededProductProvider,
-
       sharedPreferencesProvider,
     );
 
@@ -98,17 +81,11 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => environmentProvider),
-        ChangeNotifierProvider(create: (_) => recipeProvider),
         ChangeNotifierProvider(create: (_) => productProvider),
-        ChangeNotifierProvider(create: (_) => scheduleProvider),
         ChangeNotifierProvider(create: (_) => httpServerProvider),
         ChangeNotifierProvider(create: (_) => openConnectionProvider),
         ChangeNotifierProvider(create: (_) => httpServerStateProvider),
         ChangeNotifierProvider(create: (_) => httpClientService),
-        ChangeNotifierProvider(create: (_) => supermarketProvider),
-        ChangeNotifierProvider(create: (_) => aisleProvider),
-        ChangeNotifierProvider(create: (_) => productAisleProvider),
-        ChangeNotifierProvider(create: (_) => mapTileProvider),
         ChangeNotifierProvider(create: (_) => houseProvider),
         ChangeNotifierProvider(create: (_) => neededProductProvider),
         ChangeNotifierProvider(create: (_) => sharedPreferencesProvider),

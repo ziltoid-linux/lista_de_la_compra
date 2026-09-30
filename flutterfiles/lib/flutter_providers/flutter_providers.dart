@@ -3,19 +3,16 @@ import 'package:lista_de_la_compra_backend/lista_de_la_compra_backend.dart';
 
 import 'package:nsd/nsd.dart';
 
-
 class FlutterOpenConnectionProvider extends OpenConnectionProvider with ChangeNotifier {}
 
 class FlutterEnvironmentProvider extends EnvironmentProvider with ChangeNotifier {}
 
-class FlutterHttpServerProvider extends HttpServerProvider with ChangeNotifier{}
+class FlutterHttpServerProvider extends HttpServerProvider with ChangeNotifier {}
 
-
-class FlutterHttpServerStateProvider extends HttpServerStateProvider with ChangeNotifier{
+class FlutterHttpServerStateProvider extends HttpServerStateProvider with ChangeNotifier {
   FlutterHttpServerStateProvider(super.serverManager, super.sharedPreferencesProvider);
 
   Registration? avahiRegistration;
-
 
   @override
   Future<void> tryStartServer() {
@@ -23,7 +20,7 @@ class FlutterHttpServerStateProvider extends HttpServerStateProvider with Change
     return super.tryStartServer();
   }
 
-  void tryStartMdns() async{
+  void tryStartMdns() async {
     String localNick = await sharedPreferencesProvider.getLocalNick();
     try {
       if (avahiRegistration != null) {
@@ -35,7 +32,6 @@ class FlutterHttpServerStateProvider extends HttpServerStateProvider with Change
     } catch (e) {
       print("no mdns on this platform");
     }
-
   }
 
   @override
@@ -48,20 +44,6 @@ class FlutterHttpServerStateProvider extends HttpServerStateProvider with Change
   }
 }
 
-class FlutterProductProvider extends ProductProvider with ChangeNotifier{}
-
-class FlutterRecipeProvider extends RecipeProvider with ChangeNotifier{}
-
-class FlutterScheduleProvider extends ScheduleProvider with ChangeNotifier {}
-
-class FlutterSuperMarketProvider extends SuperMarketProvider with ChangeNotifier {}
-
-class FlutterAisleProvider extends AisleProvider with ChangeNotifier {}
-
-class FlutterProductAisleProvider extends ProductAisleProvider with ChangeNotifier {}
-
-class FlutterMapTileProvider extends MapTileProvider with ChangeNotifier {}
-
+class FlutterProductProvider extends ProductProvider with ChangeNotifier {}
 class FlutterHouseProvider extends HouseProvider with ChangeNotifier {}
-
 class FlutterNeededProductProvider extends NeededProductProvider with ChangeNotifier {}

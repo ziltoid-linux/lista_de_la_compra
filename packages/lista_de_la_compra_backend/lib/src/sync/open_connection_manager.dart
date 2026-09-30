@@ -10,15 +10,9 @@ import '../../lista_de_la_compra_backend.dart';
 
 class OpenConnectionManager {
   final ProductProvider productProvider;
-  final RecipeProvider recipeProvider;
-  final ScheduleProvider scheduleProvider;
   final OpenConnectionProvider openConnectionProvider;
   final SharedPreferencesProvider sharedPreferencesProvider;
   final EnvironmentProvider environmentProvider;
-  final SuperMarketProvider supermarketProvider;
-  final AisleProvider aisleProvider;
-  final ProductAisleProvider productAisleProvider;
-  final MapTileProvider mapTileProvider;
   final HouseProvider houseProvider;
   final NeededProductProvider neededProductProvider;
 
@@ -45,26 +39,14 @@ class OpenConnectionManager {
   OpenConnectionManager(
     this.openConnectionProvider,
     this.productProvider,
-    this.recipeProvider,
-    this.scheduleProvider,
     this.environmentProvider,
-    this.supermarketProvider,
-    this.aisleProvider,
-    this.productAisleProvider,
-    this.mapTileProvider,
     this.houseProvider,
     this.neededProductProvider,
     this.sharedPreferencesProvider, {
     this.downloadAllEnvironments = false,
   }) {
     productProvider.addListener(triggerSyncPush);
-    recipeProvider.addListener(triggerSyncPush);
-    scheduleProvider.addListener(triggerSyncPush);
     environmentProvider.addListener(triggerHandshakePush);
-    supermarketProvider.addListener(triggerSyncPush);
-    aisleProvider.addListener(triggerSyncPush);
-    productAisleProvider.addListener(triggerSyncPush);
-    mapTileProvider.addListener(triggerSyncPush);
     houseProvider.addListener(triggerSyncPush);
     neededProductProvider.addListener(triggerSyncPush);
     sharedPreferencesProvider.addListener(triggerHandshakePush);
@@ -81,17 +63,11 @@ class OpenConnectionManager {
           enviromentId,
           environmentProvider,
           productProvider,
-          recipeProvider,
-          scheduleProvider,
-          supermarketProvider,
-          aisleProvider,
-          productAisleProvider,
-          mapTileProvider,
           houseProvider,
           neededProductProvider,
         ),
       ),
-    ); // data being hashed
+    );
     var saltedBytes = bytes + utf8.encode(salt.toString());
     return sha512256.convert(saltedBytes).toString();
   }
@@ -127,7 +103,6 @@ class OpenConnectionManager {
         if (!env.id.contains("noSync")) {
           int salt = math.Random().nextInt(1000);
           send(jsonEncode({"type": "send_digest", "salt": salt, "environment": env, "digest": await getStateDigest(salt, env.id)}));
-          // print("triggerSyncPull: sent send_digest of $env");
         }
       }
     }
@@ -145,8 +120,6 @@ class OpenConnectionManager {
         if (message is String) {
           Map<String, dynamic> data = jsonDecode(message);
 
-          // print( "Received: ${data["type"]}");
-
           switch (data["type"]) {
             case "ping":
               send(jsonEncode({"type": "pong", "nonce": data["nonce"], "ping_t": data["ping_t"], "pong_t": DateTime.now().millisecondsSinceEpoch}));
@@ -158,7 +131,6 @@ class OpenConnectionManager {
               if (terminalId != null) {
                 openConnectionProvider.setLatency(openConnectionId!, latency);
               }
-
               break;
             case "handshake":
               terminalId = data["id"];
@@ -204,7 +176,6 @@ class OpenConnectionManager {
 
             case "sync_push":
               triggerSyncPull();
-
               break;
 
             case "send_digest":
@@ -237,12 +208,6 @@ class OpenConnectionManager {
                       remoteEnvironment.id,
                       environmentProvider,
                       productProvider,
-                      recipeProvider,
-                      scheduleProvider,
-                      supermarketProvider,
-                      aisleProvider,
-                      productAisleProvider,
-                      mapTileProvider,
                       houseProvider,
                       neededProductProvider,
                     ),
@@ -256,20 +221,12 @@ class OpenConnectionManager {
                 data["state"],
                 environmentProvider,
                 productProvider,
-                recipeProvider,
-                scheduleProvider,
-                supermarketProvider,
-                aisleProvider,
-                productAisleProvider,
-                mapTileProvider,
                 houseProvider,
                 neededProductProvider,
               );
-
               break;
 
             case "sync_up_to_date":
-              // No action needed
               break;
 
             default:

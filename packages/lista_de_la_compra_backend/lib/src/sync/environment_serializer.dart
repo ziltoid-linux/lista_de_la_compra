@@ -1,64 +1,29 @@
-import 'package:lista_de_la_compra_backend/src/db_providers/map_provider.dart';
-
 import '../db/database.dart';
 import '../db_providers/environment_provider.dart';
 import '../db_providers/house_provider.dart';
 import '../db_providers/needed_product_provider.dart';
 import '../db_providers/product_provider.dart';
-import '../db_providers/recipe_provider.dart';
-import '../db_providers/schedule_provider.dart';
-import '../db_providers/supermarket_provider.dart';
-import '../db_providers/aisle_provider.dart';
-import '../db_providers/product_aisle_provider.dart';
 
 Future<Map<String, dynamic>> serializeEnvironment(
   String enviromentId,
   EnvironmentProvider environmentProvider,
   ProductProvider productProvider,
-  RecipeProvider recipeProvider,
-  ScheduleProvider scheduleProvider,
-  SuperMarketProvider supermarketProvider,
-  AisleProvider aisleProvider,
-  ProductAisleProvider productAisleProvider,
-  MapTileProvider mapTileProvider,
   HouseProvider houseProvider,
   NeededProductProvider neededProductProvider,
 ) async {
-  // Launch all provider fetches concurrently to improve latency.
   final envFuture = environmentProvider.getEnvironmentById(enviromentId);
   final productsFuture = productProvider.getSyncProductList(enviromentId);
-  final recipesFuture = recipeProvider.getSyncRecipeList(enviromentId);
-  final recipeProductsFuture = recipeProvider.getSyncRecipeProductList(enviromentId);
-  final scheduleFuture = scheduleProvider.getSyncEntryList(enviromentId);
-  final superMarketsFuture = supermarketProvider.getSyncSuperMarketList(enviromentId);
-  final aislesFuture = aisleProvider.getSyncAisleList(enviromentId);
-  final productAislesFuture = productAisleProvider.getSyncProductAisleList(enviromentId);
-  final mapTilesFuture = mapTileProvider.getSyncMapTileList(enviromentId);
   final housesFuture = houseProvider.getSyncHouseList(enviromentId);
   final neededProductsFuture = neededProductProvider.getSyncNeededProductList(enviromentId);
 
   final environment = (await envFuture)!;
   final products = await productsFuture;
-  final recipes = await recipesFuture;
-  final productsRecipies = await recipeProductsFuture;
-  final schedule = await scheduleFuture;
-  final superMarkets = await superMarketsFuture;
-  final aisles = await aislesFuture;
-  final productAisles = await productAislesFuture;
-  final mapTiles = await mapTilesFuture;
   final houses = await housesFuture;
   final neededProducts = await neededProductsFuture;
 
   return {
     "environment": environment,
     "products": products,
-    "recipes": recipes,
-    "products_recipies": productsRecipies,
-    "schedule": schedule,
-    "super_markets": superMarkets,
-    "aisles": aisles,
-    "product_aisles": productAisles,
-    "map_tiles": mapTiles,
     "houses": houses,
     "needed_products": neededProducts,
   };
@@ -99,12 +64,6 @@ Future<void> recieveState(
   Map<String, dynamic> state,
   EnvironmentProvider environmentProvider,
   ProductProvider productProvider,
-  RecipeProvider recipeProvider,
-  ScheduleProvider scheduleProvider,
-  SuperMarketProvider supermarketProvider,
-  AisleProvider aisleProvider,
-  ProductAisleProvider productAisleProvider,
-  MapTileProvider mapTileProvider,
   HouseProvider houseProvider,
   NeededProductProvider neededProductProvider,
 ) async {
@@ -120,25 +79,11 @@ Future<void> recieveState(
     }
   }
 
-  List<dynamic> otherProducts = state["products"]!;
-  List<dynamic> otherRecipes = state["recipes"]!;
-  List<dynamic> otherProductsRecipies = state["products_recipies"]!;
-  List<dynamic> otherSchedule = state["schedule"]!;
-  List<dynamic> otherSuperMarkets = state["super_markets"] ?? [];
-  List<dynamic> otherAisles = state["aisles"] ?? [];
-  List<dynamic> otherProductAisles = state["product_aisles"] ?? [];
-  List<dynamic> otherMapTiles = state["map_tiles"] ?? [];
+  List<dynamic> otherProducts = state["products"] ?? [];
   List<dynamic> otherHouses = state["houses"] ?? [];
   List<dynamic> otherNeededProducts = state["needed_products"] ?? [];
 
   var selfProducts = productProvider.getSyncProductList(remoteEnvironment.id);
-  var selfRecipes = recipeProvider.getSyncRecipeList(remoteEnvironment.id);
-  var selfProductsRecipes = recipeProvider.getSyncRecipeProductList(remoteEnvironment.id);
-  var selfSchedule = scheduleProvider.getSyncEntryList(remoteEnvironment.id);
-  var selfSuperMarkets = supermarketProvider.getSyncSuperMarketList(remoteEnvironment.id);
-  var selfAisles = aisleProvider.getSyncAisleList(remoteEnvironment.id);
-  var selfProductAisles = productAisleProvider.getSyncProductAisleList(remoteEnvironment.id);
-  var selfMapTiles = mapTileProvider.getSyncMapTileList(remoteEnvironment.id);
   var selfHouses = houseProvider.getSyncHouseList(remoteEnvironment.id);
   var selfNeededProducts = neededProductProvider.getSyncNeededProductList(remoteEnvironment.id);
 
@@ -148,62 +93,6 @@ Future<void> recieveState(
     (id, item) => productProvider.syncOveride(id, item),
     (id, deletedAt) => productProvider.syncSetDeleted(id, deletedAt),
     (item) => productProvider.syncAddProduct(item),
-  );
-
-  await syncItems(
-    otherRecipes,
-    await selfRecipes,
-    (id, item) => recipeProvider.syncOverideRecipe(id, item),
-    (id, deletedAt) => recipeProvider.syncSetDeletedRecipe(id, deletedAt),
-    (item) => recipeProvider.syncAddRecipe(item),
-  );
-
-  await syncItems(
-    otherProductsRecipies,
-    await selfProductsRecipes,
-    (id, item) => recipeProvider.syncOverideRecipeProduct(id, item),
-    (id, deletedAt) => recipeProvider.syncSetDeletedRecipeProduct(id, deletedAt),
-    (item) => recipeProvider.syncAddRecipeProduct(item),
-  );
-
-  await syncItems(
-    otherSchedule,
-    await selfSchedule,
-    (id, item) => scheduleProvider.syncOveride(id, item),
-    (id, deletedAt) => scheduleProvider.syncSetDeleted(id, deletedAt),
-    (item) => scheduleProvider.syncAddEntry(item),
-  );
-
-  await syncItems(
-    otherSuperMarkets,
-    await selfSuperMarkets,
-    (id, item) => supermarketProvider.syncOverideSuperMarket(id, item),
-    (id, deletedAt) => supermarketProvider.syncSetDeletedSuperMarket(id, deletedAt),
-    (item) => supermarketProvider.syncAddSuperMarket(item),
-  );
-
-  await syncItems(
-    otherAisles,
-    await selfAisles,
-    (id, item) => aisleProvider.syncOverideAisle(id, item),
-    (id, deletedAt) => aisleProvider.syncSetDeletedAisle(id, deletedAt),
-    (item) => aisleProvider.syncAddAisle(item),
-  );
-
-  await syncItems(
-    otherProductAisles,
-    await selfProductAisles,
-    (id, item) => productAisleProvider.syncOverideProductAisle(id, item),
-    (id, deletedAt) => productAisleProvider.syncSetDeletedProductAisle(id, deletedAt),
-    (item) => productAisleProvider.syncAddProductAisle(item),
-  );
-
-  await syncItems(
-    otherMapTiles,
-    await selfMapTiles,
-    (id, item) => mapTileProvider.syncOverideMapTile(id, item),
-    (id, deletedAt) => mapTileProvider.syncSetDeletedMapTile(id, deletedAt),
-    (item) => mapTileProvider.syncAddMap(item),
   );
 
   await syncItems(
