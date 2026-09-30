@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:lista_de_la_compra/l10n/app_localizations.dart';
 import 'package:lista_de_la_compra_backend/lista_de_la_compra_backend.dart';
 import 'package:nsd/nsd.dart';
+import 'package:provider/provider.dart';
 
 import 'package:collection/collection.dart';
 
