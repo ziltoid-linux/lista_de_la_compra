@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lista_de_la_compra/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../flutter_providers/flutter_providers.dart';
+import 'package:lista_de_la_compra/shared_preference_providers/persistent_selected_houses_provider.dart';
 import 'package:lista_de_la_compra_backend/lista_de_la_compra_backend.dart';
 
 class HouseManager extends StatelessWidget {
@@ -236,9 +237,21 @@ class HouseManager extends StatelessWidget {
                                 child: Text(appLoc.cancel),
                               ),
                               TextButton(
-                                onPressed: () {
-                                  houseProvider.deleteById(house.id);
-                                  Navigator.of(ctx).pop();
+                                onPressed: () async {
+                                  await houseProvider.deleteById(house.id);
+                                  final selectedProvider =
+                                      ctx.read<PersistentSelectedHousesProvider>();
+                                  final selected =
+                                      await selectedProvider.getSelectedHouses(enviromentId);
+                                  if (selected.remove(house.id)) {
+                                    await selectedProvider.setSelectedHouses(
+                                      enviromentId,
+                                      selected,
+                                    );
+                                  }
+                                  if (ctx.mounted) {
+                                    Navigator.of(ctx).pop();
+                                  }
                                 },
                                 child: Text(appLoc.delete),
                               ),
