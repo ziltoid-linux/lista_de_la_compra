@@ -34,3 +34,5 @@ In terms of encryption we have no encryption. Please connect only to fully trust
 
 ## 🖥️ Standalone Server
 You can host a server in your own LAN. See the instructions in [lista_de_la_compra_server](./packages/lista_de_la_compra_server/README.md).
+
+<!-- CI rebuild trigger: 2026-09-30 -->
