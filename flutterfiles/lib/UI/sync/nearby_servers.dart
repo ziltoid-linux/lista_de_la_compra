@@ -11,8 +11,6 @@ import 'package:collection/collection.dart';
 
 import '../../flutter_providers/flutter_providers.dart';
 
-class DiscoveredPeer {}
-
 class _NearbyServers extends State<NearbyServers> {
   Discovery? discovery;
 
@@ -38,7 +36,7 @@ class _NearbyServers extends State<NearbyServers> {
     discovery?.removeListener(notifyUpdate);
   }
 
-  Future<(Iterable<Service>, List<Service>)> getDedupedServices(SharedPreferencesProvider sharedPreferencesProvider) async {
+  Future<(Iterable<Service>, List<Service>)> getDedupedServices() async {
     var allServices = discovery!.services;
     List<NetworkInterface> interfaces = await NetworkInterface.list();
     List<InternetAddress> selfAddresses = interfaces.map((e) => e.addresses).flattenedToList;
@@ -63,13 +61,12 @@ class _NearbyServers extends State<NearbyServers> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations appLoc = AppLocalizations.of(context)!;
-    SharedPreferencesProvider sharedPreferencesProvider = context.watch<PersistantSharedPreferencesProvider>();
     HttpServerProvider httpServerProvider = context.watch<FlutterHttpServerProvider>();
 
     if (discovery == null) {
       return Text(appLoc.scanStarted);
     } else {
-      Future<(Iterable<Service>, List<Service>)> dedupedServices = getDedupedServices(sharedPreferencesProvider);
+      Future<(Iterable<Service>, List<Service>)> dedupedServices = getDedupedServices();
 
       if (discovery!.services.isEmpty) {
         return Text(appLoc.noResultsYet);
