@@ -7,7 +7,9 @@
 Or download the latest APK from the [Releases Section](https://github.com/jaimegonzalezfabregas/lista_de_la_compra/releases/latest).
 
 
-This is a shopping list app, with integrated meals scheduler. It features local sync, that is, synchronization between instances without the need of a central server. A headless server is also provided.
+This is a simplified shopping list app for products and houses. It features local sync, that is, synchronization between instances without the need of a central server. A headless server is also provided.
+
+This simplified build does not include recipes, meal scheduling, supermarket or aisle management, or shopping-route planning.
 
 
 This branch contains the simplified grocery-list build.
