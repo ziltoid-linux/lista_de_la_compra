@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lista_de_la_compra/UI/common/needed_checkbox.dart';
 import 'package:lista_de_la_compra/UI/common/searchable_list_view.dart';
-import 'package:lista_de_la_compra/UI/products/product_detail.dart';
 import 'package:lista_de_la_compra/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../flutter_providers/flutter_providers.dart';
@@ -50,32 +49,18 @@ class ProductListDisplay extends StatelessWidget {
               elementToListTile: (Product p, RichText tag) {
                 return ListTile(
                   title: tag,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (selectedHouseIds.isNotEmpty)
-                        ...selectedHouses.map((house) {
-                          return NeededCheckbox(
-                            productId: p.id,
-                            houseId: house.id,
-                            delay: isNeededList ? Duration(milliseconds: 200) : null,
-                          );
-                        }),
-                      if (selectedHouseIds.isEmpty)
-                        Text(appLoc.noHouseSelected),
-                      IconButton(
-                        icon: const Icon(Icons.arrow_outward),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductDetail(p.id, enviromentId),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                  trailing: selectedHouseIds.isNotEmpty
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: selectedHouses.map((house) {
+                            return NeededCheckbox(
+                              productId: p.id,
+                              houseId: house.id,
+                              delay: isNeededList ? Duration(milliseconds: 200) : null,
+                            );
+                          }).toList(),
+                        )
+                      : Text(appLoc.noHouseSelected),
                 );
               },
               elementToTag: (Product p) => p.name,
