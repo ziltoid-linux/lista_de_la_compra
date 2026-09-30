@@ -1,5 +1,6 @@
 
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 import 'environments.dart';
 import 'house_model.dart';
 import 'http_server_model.dart';
