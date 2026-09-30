@@ -32,13 +32,18 @@ class HouseSelector extends StatelessWidget {
           future: selectedHousesProvider.getSelectedHouses(enviromentId),
           builder: (context, housesSnapshot) {
             final selectedHouseIds = housesSnapshot.data ?? [];
+            // A deleted house can remain in the persisted selection list.
+            // Only count IDs that still correspond to existing houses.
+            final existingHouseIds = allHouses.map((house) => house.id).toSet();
+            final validSelectedHouseIds =
+                selectedHouseIds.where(existingHouseIds.contains).toList();
 
             return Tooltip(
               message: appLoc.selectHouses,
               child: ElevatedButton.icon(
                 icon: Icon(Icons.home),
-                label: Text('${selectedHouseIds.length}'),
-                onPressed: () => _showHouseSelectionDialog(context, allHouses, appLoc, selectedHouseIds.toSet()),
+                label: Text('${validSelectedHouseIds.length}'),
+                onPressed: () => _showHouseSelectionDialog(context, allHouses, appLoc, validSelectedHouseIds.toSet()),
               ),
             );
           },
